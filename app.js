@@ -3,6 +3,54 @@ const busqueda = document.querySelector("#search");
 const btnsearchContainer = document.querySelector("#categorias");
 const contenedor = document.querySelector("#productos");
 let categoriaSeleccionada = "all";
+const handleLogin = () => {
+  const loginForm = document.querySelector("#login-form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.querySelector("#username").value;
+      const password = document.querySelector("#password").value;
+      const mensaje = document.querySelector("#mensaje");
+
+      try {
+        const response = await fetch("https://fakestoreapi.com/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            password,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Error en la respuesta de la API");
+        }
+        const data = await response.json();
+        localStorage.setItem("token", data.token);
+        mensaje.textContent = "Login exitoso";
+        mensaje.classList.add("text-green-500");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1500);
+      } catch (error) {
+        console.error("Error al hacer login:", error);
+        mensaje.textContent = "Error al hacer login";
+        mensaje.classList.add("text-red-500");
+        setTimeout(() => {
+          mensaje.textContent = "";
+          mensaje.classList.remove("text-red-500");
+        }, 2000);
+      }
+    });
+  }
+  if (contenedor && busqueda && btnsearchContainer) {
+    cargarCategorias();
+    cargarProductos();
+    busqueda.addEventListener("input", filtrarProductos);
+  }
+};
+
 const cargarProductos = async () => {
   try {
     const response = await fetch("https://fakestoreapi.com/products");
@@ -64,7 +112,6 @@ const mostrarCategorias = (categorias) => {
         ? "Todos"
         : categoria.charAt(0).toUpperCase() + categoria.slice(1);
     btn.addEventListener("click", () => {
-      
       categoriaSeleccionada = categoria;
       mostrarCategorias(categorias);
       filtrarProductos();
@@ -103,7 +150,7 @@ const mostrarProductos = (productos) => {
       "justify-between",
       "hover:shadow-lg",
       "transition-shadow",
-      "duration-300",
+      "duration-300"
     );
     div.innerHTML = `
         <img src="${image}" alt="${title}" loading="lazy" class="w-32 h-32 object-contain mb-4">
@@ -116,8 +163,6 @@ const mostrarProductos = (productos) => {
   });
 };
 
-busqueda.addEventListener("input", filtrarProductos);
 document.addEventListener("DOMContentLoaded", () => {
-  cargarProductos();
-  cargarCategorias();
+  handleLogin();
 });

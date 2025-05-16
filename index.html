@@ -58,6 +58,11 @@
         <p>&copy; 2025 Tienda Online. Todos los derechos reservados</p>
       </footer>
     </main>
+    <script>  
+      if (!localStorage.getItem("token")) {
+       window.location.href = "login.html";   
+      } 
+    </script>
     <script src="app.js"></script>
   </body>
 </html>
