@@ -89,23 +89,24 @@ const mostrarCategorias = (categorias) => {
   categorias.forEach((categoria) => {
     const btn = document.createElement("button");
     btn.classList.add(
-      "text-gray-700",
-      "px-4",
-      "py-2",
-      "rounded",
-      "mr-2",
-      "mb-2",
-      "hover:bg-blue-800",
-      "transition-colors",
-      "duration-300",
-      "cursor-pointer"
-    );
+  "px-4",
+  "py-2",
+  "rounded",
+  "mr-2",
+  "mb-2",
+  "transition-colors",
+  "duration-300",
+  "cursor-pointer",
+  "font-semibold",
+  "border"
+);
 
-    if (categoria === categoriaSeleccionada) {
-      btn.classList.add("bg-blue-800", "text-white");
-    } else {
-      btn.classList.add("bg-gray-200");
-    }
+if (categoria === categoriaSeleccionada) {
+  btn.classList.add("bg-[#F5F5F5]", "text-[#121212]", "border-transparent", "hover:bg-[#e5e5e5]");
+} else {
+  btn.classList.add("bg-transparent", "text-[#F5F5F5]", "border-[#F5F5F5]", "hover:bg-[#1E1E1E]");
+}
+
 
     btn.textContent =
       categoria === "all"
@@ -137,7 +138,8 @@ const filtrarProductos = () => {
 
 const mostrarProductos = (productos) => {
   contenedor.innerHTML = "";
-  productos.forEach(({ image, title, price, description }) => {
+  productos.forEach((producto) => {
+    const { id, image, title, price, description, category } = producto;
     const div = document.createElement("div");
     div.classList.add(
       "bg-white",
@@ -154,14 +156,62 @@ const mostrarProductos = (productos) => {
     );
     div.innerHTML = `
         <img src="${image}" alt="${title}" loading="lazy" class="w-32 h-32 object-contain mb-4">
-        <h2 class="text-center font-bold mb-2">${title}</h2>
-        <p class="text-sm sm:text-[14px] md:text-[10px] xl:text-[14px] text-gray-600 text-center mb-4 break-words">${description}</p> 
-        <p class="text-lg font-semibold text-blue-600 mb-4 mt-auto">Precio: $${price}</p>
-        <button class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-300 self-stretch">Agregar al carrito</button>
+        <h2 class="text-center font-bold mb-2 text-[#1E1E1E]">${title}</h2>
+        <p class="text-lg font-semibold text-[#4B4B4B] mb-4 mt-auto">Precio: $${price}</p>
+        <button 
+          class="open-details cursor-pointer bg-[#121212] text-[#F5F5F5] hover:bg-[#333333] transition px-4 py-2 rounded self-stretch"
+          data-id="${id}"
+          data-title="${encodeURIComponent(title)}"
+          data-description="${encodeURIComponent(description)}"
+          data-price="${price}"
+          data-category="${encodeURIComponent(category)}"
+        >Detalles</button>
       `;
     contenedor.append(div);
   });
 };
+
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("open-details")) {
+    const btn = e.target;
+    const title = decodeURIComponent(btn.getAttribute("data-title") || "");
+    const description = decodeURIComponent(btn.getAttribute("data-description") || "");
+    const price = btn.getAttribute("data-price") || "";
+    const category = decodeURIComponent(btn.getAttribute("data-category") || "");
+    const id = btn.getAttribute("data-id") || ""; // <-- Asegúrate de pasar el id en el botón
+    const dialog = document.getElementById("dialog");
+    if (!dialog) return;
+    dialog.querySelector("h2").textContent = title;
+    dialog.querySelector("#dialog-message").innerHTML = `
+      <span class="block mb-2"><strong>Descripción:</strong> ${description}</span>
+      <span class="block mb-2">
+  <strong>Categoría:</strong> ${category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()}
+</span>
+
+      <span class="block mb-2 text-[#1E1E1E] font-bold"><strong>Precio:</strong> $${price}</span>
+      <button id="to-details-products" data-id="${id}" class="cursor-pointer w-full bg-[#121212] text-[#F5F5F5] hover:bg-[#333333] transition py-2 rounded">Ir a detalles del producto</button>
+    `;
+    dialog.setAttribute("open", "");
+  }
+  if (e.target.id === "close-dialog") {
+    const dialog = document.getElementById("dialog");
+    if (dialog) dialog.removeAttribute("open");
+  }
+});
+
+document.addEventListener("click", function (e) {
+  const dialog = document.getElementById("dialog");
+  if (
+    dialog &&
+    dialog.hasAttribute("open") &&
+    e.target.id === "to-details-products"
+  ) {
+    const id = e.target.getAttribute("data-id");
+    if (id) {
+      window.location.href = `detalle.html?id=${id}`;
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   handleLogin();

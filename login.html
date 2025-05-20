@@ -6,41 +6,88 @@
     <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <body
+    class="bg-[#121212] flex flex-col gap-8 items-center justify-center min-h-screen px-3"
+  >
+    <button
+      type="button"
+      aria-label="Abrir modal"
+      id="logo"
+      class="w-32 h-32 overflow-hidden rounded shadow-[0_0_10px_rgba(245,245,245,0.5)] cursor-pointer"
+    >
+      <img
+        class="w-full h-full object-cover"
+        src="./assets/images/descarga.jpeg"
+        alt="Logo"
+      />
+    </button>
     <form
       id="login-form"
-      class="bg-white shadow-md rounded px-8 py-6 w-full max-w-sm"
+      class="bg-[#F5F5F5] shadow-[0_0_10px_rgba(245,245,245,0.5)] rounded px-8 py-6 w-full max-w-sm"
     >
-      <h2 class="text-2xl font-bold mb-4 text-center text-blue-600">
+      <h2 class="text-2xl font-bold mb-4 text-center text-[#1E1E1E]">
         Iniciar Sesión
       </h2>
- 
-      <label class="block mb-2 text-sm font-medium">Usuario</label>
+      <label class="block mb-2 text-sm font-medium text-[#4B4B4B]"
+        >Usuario</label
+      >
       <input
         type="text"
         id="username"
         required
-        class="w-full px-3 py-2 border rounded mb-4"
+        class="w-full px-3 py-2 border rounded mb-4 text-[#4B4B4B]"
       />
- 
-      <label class="block mb-2 text-sm font-medium">Contraseña</label>
+      <label class="block mb-2 text-sm font-medium text-[#4B4B4B]"
+        >Contraseña</label
+      >
       <input
         type="password"
         id="password"
         required
-        class="w-full px-3 py-2 border rounded mb-4"
+        class="w-full px-3 py-2 border rounded mb-4 text-[#4B4B4B]"
       />
- 
       <button
         type="submit"
-        class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+        class="w-full bg-[#121212] text-[#F5F5F5] hover:bg-[#333333] transition py-2 rounded"
       >
         Iniciar sesión
       </button>
- 
-      <p id="mensaje" class="text-center mt-4 text-sm text-gray-600"></p>
+      <p id="mensaje" class="text-center mt-4 text-2xl font-bold"></p>
     </form>
- 
+    <dialog id="dialog" class="p-0 border-none">
+      <div
+        class="fixed inset-0 bg-[#1E1E1E]/70 backdrop-blur-sm flex items-center justify-center z-50"
+      >
+        <div
+          class="relative bg-[#F5F5F5] shadow-[0_0_10px_rgba(245,245,245,0.5)] rounded px-8 py-6 w-full max-w-sm"
+        >
+          <button
+            id="close-dialog"
+            class="absolute right-3 text-[#1E1E1E] hover:text-[#333] text-xl font-bold cursor-pointer"
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+          <h2 class="text-2xl font-bold mb-4 text-center text-[#1E1E1E]">
+            Bienvenido, ingresa tu usuario y contraseña para encontrar los
+            mejores productos
+          </h2>
+          <p id="dialog-message" class="text-center text-[#4B4B4B]"></p>
+        </div>
+      </div>
+    </dialog>
+    <script>
+      const logo = document.getElementById("logo");
+      const dialog = document.getElementById("dialog");
+      const closeDialog = document.getElementById("close-dialog");
+      dialog.removeAttribute("open");
+      logo.addEventListener("click", () => {
+        dialog.setAttribute("open", "");
+      });
+      closeDialog.addEventListener("click", () => {
+        dialog.removeAttribute("open");
+      });
+    </script>
     <script src="app.js"></script>
   </body>
 </html>
