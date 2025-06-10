@@ -7,36 +7,48 @@
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyBs8fq7UmD_cm8lFEavXlORA3vHNuvJUpk",
-  authDomain: "store-3ab01.firebaseapp.com",
-  projectId: "store-3ab01",
-  storageBucket: "store-3ab01.firebasestorage.app", // Como estaba originalmente
-  messagingSenderId: "313529487997",
-  appId: "1:313529487997:web:26d8c761c38989b8d79714"
-};
-
-// Inicializa Firebase
-firebase.initializeApp(firebaseConfig);
-const storage = firebase.storage();
-
-const form = document.getElementById('upload-image-test');
-const input = document.getElementById('image-input');
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const file = input.files[0];
-  if (!file) {
-    alert('Selecciona una imagen');
+// Firebase configuration
+// const firebaseConfig = {
+//   apiKey: "YOUR_API_KEY",
+//   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+//   projectId: "YOUR_PROJECT_ID",
+//   storageBucket: "YOUR_PROJECT_ID.appspot.com",
+//   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+//   appId: "YOUR_APP_ID"
+// };
+document.addEventListener("DOMContentLoaded", () => {
+  // Verificar que Firebase y la config estén disponibles
+  if (typeof firebase === "undefined") {
+    console.error("Firebase no está cargado");
     return;
   }
-  try {
-    const storageRef = storage.ref(`imagenes/${file.name}`);
-    await storageRef.put(file);
-    const url = await storageRef.getDownloadURL();
-    alert('Imagen subida correctamente. URL: ' + url);
-  } catch (error) {
-    alert('Error al subir la imagen');
-    console.error(error);
+
+  if (!window.FirebaseConfig) {
+    console.error("Configuración de Firebase no encontrada");
+    return;
   }
+  // Inicializa Firebase
+  firebase.initializeApp(FirebaseConfig);
+  const storage = firebase.storage();
+
+  const form = document.getElementById("upload-image-test");
+  const input = document.getElementById("image-input");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const file = input.files[0];
+    if (!file) {
+      alert("Selecciona una imagen");
+      return;
+    }
+    try {
+      const storageRef = storage.ref(`imagenes/${file.name}`);
+      await storageRef.put(file);
+      const url = await storageRef.getDownloadURL();
+      alert("Imagen subida correctamente. URL: " + url);
+    } catch (error) {
+      alert("Error al subir la imagen");
+      console.error(error);
+    }
+  });
 });

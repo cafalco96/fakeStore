@@ -3,6 +3,7 @@
 *.sass.map
 *.scss.map
 config-map.js
+firebase-config.js
 
 # Node.js dependencies
 node_modules/
