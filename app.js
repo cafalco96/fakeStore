@@ -51,9 +51,29 @@ const handleLogin = () => {
   }
 };
 
+// const cargarProductos = async () => {
+//   try {
+//     const response = await fetch("http://127.0.0.1:8000/api/productos"); //https://fakestoreapi.com/products para la api de store
+//     if (!response.ok) {
+//       throw new Error("Error en la respuesta de la API");
+//     }
+//     productos = await response.json();
+//     if (productos.length === 0) {
+//       console.warn("no hay productos");
+//       throw new Error("No se encontraron productos");
+//     } else {
+//       mostrarProductos(productos);
+//     }
+//   } catch (error) {
+//     console.error("Error al cargar los productos:", error);
+//     contenedor.innerHTML = "<p>Error al cargar los productos</p>";
+//   }
+// };
+
+//consumir api propia
 const cargarProductos = async () => {
   try {
-    const response = await fetch("https://fakestoreapi.com/products");
+    const response = await fetch("http://127.0.0.1:8000/api/productos"); 
     if (!response.ok) {
       throw new Error("Error en la respuesta de la API");
     }
@@ -136,10 +156,46 @@ const filtrarProductos = () => {
   mostrarProductos(filtrados);
 };
 
+// const mostrarProductos = (productos) => {
+//   contenedor.innerHTML = "";
+//   productos.forEach((producto) => {
+//     const { id, image, title, price, description, category } = producto;
+//     const div = document.createElement("div");
+//     div.classList.add(
+//       "bg-white",
+//       "rounded-lg",
+//       "shadow-md",
+//       "p-4",
+//       "flex",
+//       "flex-col",
+//       "items-center",
+//       "justify-between",
+//       "hover:shadow-lg",
+//       "transition-shadow",
+//       "duration-300"
+//     );
+//     div.innerHTML = `
+//         <img src="${image}" alt="${title}" loading="lazy" class="w-32 h-32 object-contain mb-4">
+//         <h2 class="text-center font-bold mb-2 text-[#1E1E1E]">${title}</h2>
+//         <p class="text-lg font-semibold text-[#4B4B4B] mb-4 mt-auto">Precio: $${price}</p>
+//         <button 
+//           class="open-details cursor-pointer bg-[#121212] text-[#F5F5F5] hover:bg-[#333333] transition px-4 py-2 rounded self-stretch"
+//           data-id="${id}"
+//           data-title="${encodeURIComponent(title)}"
+//           data-description="${encodeURIComponent(description)}"
+//           data-price="${price}"
+//           data-category="${encodeURIComponent(category)}"
+//         >Detalles</button>
+//       `;
+//     contenedor.append(div);
+//   });
+// };
+
+//Api propia de productos
 const mostrarProductos = (productos) => {
   contenedor.innerHTML = "";
   productos.forEach((producto) => {
-    const { id, image, title, price, description, category } = producto;
+    const { id, imagen, titulo, precio, descripcion, categorias } = producto;
     const div = document.createElement("div");
     div.classList.add(
       "bg-white",
@@ -155,21 +211,22 @@ const mostrarProductos = (productos) => {
       "duration-300"
     );
     div.innerHTML = `
-        <img src="${image}" alt="${title}" loading="lazy" class="w-32 h-32 object-contain mb-4">
-        <h2 class="text-center font-bold mb-2 text-[#1E1E1E]">${title}</h2>
-        <p class="text-lg font-semibold text-[#4B4B4B] mb-4 mt-auto">Precio: $${price}</p>
+        <img src="${imagen}" alt="${titulo}" loading="lazy" class="w-32 h-32 object-contain mb-4">
+        <h2 class="text-center font-bold mb-2 text-[#1E1E1E]">${titulo}</h2>
+        <p class="text-lg font-semibold text-[#4B4B4B] mb-4 mt-auto">Precio: $${precio}</p>
         <button 
           class="open-details cursor-pointer bg-[#121212] text-[#F5F5F5] hover:bg-[#333333] transition px-4 py-2 rounded self-stretch"
           data-id="${id}"
-          data-title="${encodeURIComponent(title)}"
-          data-description="${encodeURIComponent(description)}"
-          data-price="${price}"
-          data-category="${encodeURIComponent(category)}"
+          data-title="${encodeURIComponent(titulo)}"
+          data-description="${encodeURIComponent(descripcion)}"
+          data-price="${precio}"
+          data-category="${encodeURIComponent(categorias.map((cat)=> cat.nombre).join(", "))}"
         >Detalles</button>
       `;
-    contenedor.append(div);
+    contenedor.append(div);    
   });
 };
+
 
 document.addEventListener("click", function (e) {
   if (e.target.classList.contains("open-details")) {

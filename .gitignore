@@ -3,3 +3,23 @@
 *.sass.map
 *.scss.map
 config-map.js
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Composer dependencies (Laravel/PHP)
+vendor/
+composer.lock
+
+# Environment files
+.env
+.env.* 
+
+# IDE/editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,25 @@
+{
+  "name": "semana2-1",
+  "version": "1.0.0",
+  "description": "Store App",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cafalco96/fakeStore.git"
+  },
+  "keywords": [
+    "store"
+  ],
+  "author": "Carlos Falconi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cafalco96/fakeStore/issues"
+  },
+  "homepage": "https://github.com/cafalco96/fakeStore#readme",
+  "dependencies": {
+    "firebase": "^11.9.0"
+  }
+}
