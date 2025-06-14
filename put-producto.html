@@ -11,6 +11,60 @@
     <script src="./firebase-config.js"></script>
   </head>
   <body class="bg-[#121212] min-h-screen">
+    <header
+      class="p-4 flex justify-between items-center bg-[#1E1E1E] border-b border-[#2A2A2A] relative"
+    >
+      <a
+        href="./index.html"
+        aria-label="inicio"
+        id="logo"
+        class="w-16 h-16 overflow-hidden rounded-full shadow-[0_0_10px_rgba(245,245,245,0.5)] cursor-pointer"
+      >
+        <img
+          class="w-full h-full object-cover"
+          src="./assets/images/descarga.jpeg"
+          alt="Logo"
+        />
+      </a>
+
+      <button
+        id="menu-toggle"
+        class="cursor-pointer text-white text-3xl focus:outline-none z-50"
+        aria-label="Abrir menú"
+      >
+        ☰
+      </button>
+
+      <nav
+        id="nav-menu"
+        class="hidden fixed inset-0 flex flex-col items-center justify-center bg-[#1E1E1E] space-y-8 z-40 text-xl"
+      >
+        <a
+          href="./index.html"
+          aria-label="inicio"
+          id="logo"
+          class="w-24 h-24 overflow-hidden rounded-full shadow-[0_0_10px_rgba(245,245,245,0.5)] cursor-pointer"
+        >
+          <img
+            class="w-full h-full object-cover"
+            src="./assets/images/descarga.jpeg"
+            alt="Logo"
+          />
+        </a>
+        <a
+          href="./index.html"
+          class="text-slate-300 hover:underline"
+          aria-label="Ir a la sección de inicio"
+          >Inicio</a
+        >
+        <a
+          href="./contacto.html"
+          class="text-slate-300 hover:underline"
+          aria-label="Ir a la sección de contacto"
+          >Contacto</a
+        >
+      </nav>
+    </header>
     <div class="px-[50px] pb-[120px]">
       <h1 class="text-center text-5xl font-bold text-[#F5F5F5] mt-8">
         Editar producto
@@ -23,12 +77,41 @@
           class="flex flex-col gap-4"
           autocomplete="off"
         >
-          <input type="text" id="titulo" placeholder="Título" required class="p-2 rounded" />
-          <textarea id="descripcion" placeholder="Descripción" required class="p-2 rounded"></textarea>
-          <input type="number" id="precio" placeholder="Precio" step="0.01" required class="p-2 rounded" />
-          <input type="number" id="stock" placeholder="Stock" required class="p-2 rounded" />
+          <input
+            type="text"
+            id="titulo"
+            placeholder="Título"
+            required
+            class="p-2 rounded"
+          />
+          <textarea
+            id="descripcion"
+            placeholder="Descripción"
+            required
+            class="p-2 rounded"
+          ></textarea>
+          <input
+            type="number"
+            id="precio"
+            placeholder="Precio"
+            step="0.01"
+            required
+            class="p-2 rounded"
+          />
+          <input
+            type="number"
+            id="stock"
+            placeholder="Stock"
+            required
+            class="p-2 rounded"
+          />
           <!-- Selector de categorías (se llena dinámicamente) -->
-          <select id="categorias" multiple required class="p-2 rounded bg-[#2A2A2A] text-[#F5F5F5]"></select>
+          <select
+            id="categorias"
+            multiple
+            required
+            class="p-2 rounded bg-[#2A2A2A] text-[#F5F5F5]"
+          ></select>
           <!-- Input de imagen -->
           <input
             type="file"
@@ -45,6 +128,15 @@
           <p id="mensaje" class="text-center mt-2"></p>
         </form>
         <div id="image-preview" class="mt-4"></div>
+        <div class="flex justify-center mt-4">
+          <button
+            type="button"
+            onclick="window.location.href='index.html'"
+            class="bg-[#121212] text-white px-6 py-2 rounded shadow hover:bg-gray-700"
+          >
+            Volver
+          </button>
+        </div>
       </div>
     </div>
     <script>
@@ -63,11 +155,12 @@
           return false;
         }
         const res = await fetch("http://127.0.0.1:8000/api/me", {
-          headers: { Authorization: "Bearer " + token }
+          headers: { Authorization: "Bearer " + token },
         });
         const user = await res.json();
         if (!user || user.rol !== "admin") {
-          mensaje.textContent = "Solo los administradores pueden editar productos.";
+          mensaje.textContent =
+            "Solo los administradores pueden editar productos.";
           mensaje.className = "text-red-500";
           document.getElementById("edit-product-form").style.display = "none";
           return false;
@@ -81,11 +174,12 @@
           const res = await fetch("http://127.0.0.1:8000/api/categorias");
           const categorias = await res.json();
           const select = document.getElementById("categorias");
-          select.innerHTML = "";
-          categorias.forEach(cat => {
+          select.innerHTML = ""; // Limpia el select
+          categorias.forEach((cat) => {
             const option = document.createElement("option");
             option.value = cat.id;
             option.textContent = cat.nombre;
+            // Marca como seleccionadas las que ya tiene el producto
             if (idsSeleccionadas.includes(cat.id)) option.selected = true;
             select.appendChild(option);
           });
@@ -117,12 +211,14 @@
         document.getElementById("stock").value = producto.stock;
         // Cargar categorías y marcar las seleccionadas
         const categoriasIds = Array.isArray(producto.categorias)
-          ? producto.categorias.map(cat => cat.id)
+          ? producto.categorias.map((cat) => cat.id)
           : [];
         cargarCategorias(categoriasIds);
         // Mostrar imagen actual
         if (producto.imagen) {
-          document.getElementById("image-preview").innerHTML = `<img src="${producto.imagen}" alt="Imagen actual" class="w-32 h-32 object-cover rounded mx-auto" />`;
+          document.getElementById(
+            "image-preview"
+          ).innerHTML = `<img src="${producto.imagen}" alt="Imagen actual" class="w-32 h-32 object-cover rounded mx-auto" />`;
         }
       }
 
@@ -133,7 +229,9 @@
           firebase.initializeApp(FirebaseConfig);
         }
         try {
-          const storageRef = firebase.storage().ref(`imagenes/${Date.now()}_${file.name}`);
+          const storageRef = firebase
+            .storage()
+            .ref(`imagenes/${Date.now()}_${file.name}`);
           await storageRef.put(file);
           const url = await storageRef.getDownloadURL();
           return url;
@@ -144,60 +242,67 @@
       }
 
       // Enviar actualización
-      document.getElementById("edit-product-form").addEventListener("submit", async (e) => {
-        e.preventDefault(),
-        mensaje.textContent = "";
-        if (!(await checkAdmin())) return;
+      document
+        .getElementById("edit-product-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault(), (mensaje.textContent = "");
+          if (!(await checkAdmin())) return;
 
-        let imageUrl = null;
-        const fileInput = document.getElementById("image-input");
-        const file = fileInput.files[0];
-        if (file) {
-          imageUrl = await subirImagen(file);
-          if (!imageUrl) {
-            mensaje.textContent = "Error al subir la imagen.";
-            mensaje.className = "text-red-500";
-            return;
+          let imageUrl = null;
+          const fileInput = document.getElementById("image-input");
+          const file = fileInput.files[0];
+          if (file) {
+            imageUrl = await subirImagen(file);
+            if (!imageUrl) {
+              mensaje.textContent = "Error al subir la imagen.";
+              mensaje.className = "text-red-500";
+              return;
+            }
           }
-        }
 
-        const categoriasSelect = document.getElementById("categorias");
-        const categoriasIds = Array.from(categoriasSelect.selectedOptions).map(opt => Number(opt.value));
+          const categoriasSelect = document.getElementById("categorias");
+          const categoriasIds = Array.from(
+            categoriasSelect.selectedOptions
+          ).map((opt) => Number(opt.value));
 
-        const producto = {
-          titulo: document.getElementById("titulo").value,
-          descripcion: document.getElementById("descripcion").value,
-          precio: parseFloat(document.getElementById("precio").value),
-          stock: parseInt(document.getElementById("stock").value),
-          categorias: categoriasIds
-        };
-        if (imageUrl) producto.imagen = imageUrl;
+          const producto = {
+            titulo: document.getElementById("titulo").value,
+            descripcion: document.getElementById("descripcion").value,
+            precio: parseFloat(document.getElementById("precio").value),
+            stock: parseInt(document.getElementById("stock").value),
+            categorias: categoriasIds,
+          };
+          if (imageUrl) producto.imagen = imageUrl;
 
-        try {
-          const res = await fetch(`http://127.0.0.1:8000/api/productos/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + token
-            },
-            body: JSON.stringify(producto)
-          });
-          if (res.ok) {
-            mensaje.textContent = "Producto actualizado exitosamente.";
-            mensaje.className = "text-green-600";
-            setTimeout(() => {
-              window.location.href = "index.html";
-            }, 2500); 
-          } else {
-            const data = await res.json();
-            mensaje.textContent = data.message || "Error al actualizar el producto.";
+          try {
+            const res = await fetch(
+              `http://127.0.0.1:8000/api/productos/${id}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: "Bearer " + token,
+                },
+                body: JSON.stringify(producto),
+              }
+            );
+            if (res.ok) {
+              mensaje.textContent = "Producto actualizado exitosamente.";
+              mensaje.className = "text-green-600";
+              setTimeout(() => {
+                window.location.href = "index.html";
+              }, 2500);
+            } else {
+              const data = await res.json();
+              mensaje.textContent =
+                data.message || "Error al actualizar el producto.";
+              mensaje.className = "text-red-500";
+            }
+          } catch (error) {
+            mensaje.textContent = "Error al conectar con el servidor.";
             mensaje.className = "text-red-500";
           }
-        } catch (error) {
-          mensaje.textContent = "Error al conectar con el servidor.";
-          mensaje.className = "text-red-500";
-        }
-      });
+        });
 
       // Inicialización
       (async () => {
@@ -206,5 +311,6 @@
         }
       })();
     </script>
+    <script src="menu.js"></script>
   </body>
 </html>
