@@ -3,12 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
+    <title>Registro</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body
-    class="bg-[#121212] flex flex-col gap-8 items-center justify-center min-h-screen px-3"
-  >
+  <body class="bg-[#121212] flex flex-col gap-8 items-center justify-center min-h-screen px-3">
     <button
       type="button"
       aria-label="Abrir modal"
@@ -22,18 +20,23 @@
       />
     </button>
     <form
-      id="login-form"
+      id="register-form"
       class="bg-[#F5F5F5] shadow-[0_0_10px_rgba(245,245,245,0.5)] rounded px-8 py-6 w-full max-w-sm"
     >
       <h2 class="text-2xl font-bold mb-4 text-center text-[#1E1E1E]">
-        Iniciar Sesión
+        Crear Cuenta
       </h2>
-      <label class="block mb-2 text-sm font-medium text-[#4B4B4B]"
-        >Usuario</label
-      >
+      <label class="block mb-2 text-sm font-medium text-[#4B4B4B]">Nombre</label>
       <input
         type="text"
-        id="username"
+        id="name"
+        required
+        class="w-full px-3 py-2 border rounded mb-4 text-[#4B4B4B]"
+      />
+      <label class="block mb-2 text-sm font-medium text-[#4B4B4B]">Email</label>
+      <input
+        type="email"
+        id="email"
         required
         class="w-full px-3 py-2 border rounded mb-4 text-[#4B4B4B]"
       />
@@ -56,11 +59,30 @@
           👁️
         </button>
       </div>
+      <label class="block mb-2 text-sm font-medium text-[#4B4B4B]">Confirmar Contraseña</label>
+      <div class="relative mb-4">
+        <input
+          type="password"
+          id="password_confirmation"
+          required
+          minlength="8"
+          class="w-full px-3 py-2 border rounded text-[#4B4B4B] pr-10"
+        />
+        <button
+          type="button"
+          id="toggle-password-confirm"
+          tabindex="-1"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-[#4B4B4B] focus:outline-none"
+          aria-label="Mostrar u ocultar contraseña"
+        >
+          👁️
+        </button>
+      </div>
       <button
         type="submit"
         class="w-full bg-[#121212] text-[#F5F5F5] hover:bg-[#333333] transition py-2 rounded"
       >
-        Iniciar sesión
+        Registrarse
       </button>
       <p id="mensaje" class="text-center mt-4 text-2xl font-bold"></p>
     </form>
@@ -79,13 +101,12 @@
             ×
           </button>
           <h2 class="text-2xl font-bold mb-4 text-center text-[#1E1E1E]">
-            Bienvenido, ingresa tu usuario y contraseña para encontrar los
-            mejores productos
+            Bienvenido, crea tu cuenta para encontrar los mejores productos
           </h2>
           <a
             href="./login.html"
             class="text-center text-[#1E1E1E] hover:underline block mt-4"
-            >¿No tienes una cuenta? Crea una aquí</a>
+            >¿Ya tienes una cuenta? Inicia sesión aquí</a>
             <a
               href="./index.html"
               class="block mt-4 text-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
@@ -108,13 +129,68 @@
         dialog.removeAttribute("open");
       });
 
-      // Mostrar/ocultar contraseña
       const passwordInput = document.getElementById("password");
       const togglePassword = document.getElementById("toggle-password");
       togglePassword.addEventListener("click", () => {
         const type = passwordInput.type === "password" ? "text" : "password";
         passwordInput.type = type;
         togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+      });
+
+      const passwordConfirmInput = document.getElementById("password_confirmation");
+      const togglePasswordConfirm = document.getElementById("toggle-password-confirm");
+      togglePasswordConfirm.addEventListener("click", () => {
+        const type = passwordConfirmInput.type === "password" ? "text" : "password";
+        passwordConfirmInput.type = type;
+        togglePasswordConfirm.textContent = type === "password" ? "👁️" : "🙈";
+      });
+
+      document.getElementById("register-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const password_confirmation = document.getElementById("password_confirmation").value;
+        const mensaje = document.getElementById("mensaje");
+
+        if (password !== password_confirmation) {
+          mensaje.textContent = "Las contraseñas no coinciden.";
+          mensaje.classList.remove("text-green-600");
+          mensaje.classList.add("text-red-500");
+          return;
+        }
+
+        try {
+          const response = await fetch("http://127.0.0.1:8000/api/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              email,
+              password,
+              password_confirmation
+            }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            mensaje.textContent = "Registro exitoso. Ahora puedes iniciar sesión.";
+            mensaje.classList.remove("text-red-500");
+            mensaje.classList.add("text-green-600");
+            setTimeout(() => {
+              window.location.href = "login.html";
+            }, 3000); 
+          } else {
+            mensaje.textContent = data.message || "Error al registrar usuario";
+            mensaje.classList.remove("text-green-600");
+            mensaje.classList.add("text-red-500");
+          }
+        } catch (error) {
+          mensaje.textContent = "Error al conectar con el servidor";
+          mensaje.classList.remove("text-green-600");
+          mensaje.classList.add("text-red-500");
+        }
       });
     </script>
     <script src="app.js"></script>

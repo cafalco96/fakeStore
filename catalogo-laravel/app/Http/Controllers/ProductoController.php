@@ -89,18 +89,19 @@ class ProductoController extends Controller
             'precio' => 'sometimes|required|numeric|min:0',
             'imagen' => 'nullable|string|',
             'stock' => 'sometimes|required|integer|min:0',
-            'categorias' => 'nullable|array', //IDs categorias 
-            'categorias.*' => 'exists:categorias,id', // Validar que los IDs de categorias existan
+            'categorias' => 'nullable|array',
+            'categorias.*' => 'exists:categorias,id',
         ]);
         $producto->update($validated);
         if ($request->has('categorias')) {
             $producto->categorias()->sync($request->categorias);
         }
+        $producto = Producto::with('categorias')->find($producto->id);
+
         return response()->json([
             'message' => 'Producto actualizado exitosamente.',
             'producto' => $producto,
-            200
-        ]);
+        ], 200);
     }
 
     /**

@@ -27,6 +27,16 @@ class AuthControler extends Controller
             'user' => $user,
         ], 201);
     }
+    public function index()
+    {
+        // Verifica que el usuario sea admin
+        if (auth()->user()->rol !== 'admin') {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        // Retorna todos los usuarios
+        return User::all();
+    }
     public function login(Request $request)
     {
         $validate = $request->validate([
@@ -54,5 +64,9 @@ class AuthControler extends Controller
         $user->tokens()->delete();
 
         return response()->json(['message' => 'Usuario deslogueado exitosamente']);
+    }
+    public function me(Request $request)
+    {
+        return response()->json($request->user());
     }
 }

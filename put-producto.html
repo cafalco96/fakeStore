@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Producto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluye tu config de Firebase aquí si usas subida de imágenes -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script src="./firebase-config.js"></script>
+  </head>
+  <body class="bg-[#121212] min-h-screen">
+    <div class="px-[50px] pb-[120px]">
+      <h1 class="text-center text-5xl font-bold text-[#F5F5F5] mt-8">
+        Editar producto
+      </h1>
+      <div
+        class="w-full max-w-xl mx-auto shadow-[0_0_10px_rgba(245,245,245,0.5)] rounded-lg mt-8 bg-[#232323] p-8"
+      >
+        <form
+          id="edit-product-form"
+          class="flex flex-col gap-4"
+          autocomplete="off"
+        >
+          <input type="text" id="titulo" placeholder="Título" required class="p-2 rounded" />
+          <textarea id="descripcion" placeholder="Descripción" required class="p-2 rounded"></textarea>
+          <input type="number" id="precio" placeholder="Precio" step="0.01" required class="p-2 rounded" />
+          <input type="number" id="stock" placeholder="Stock" required class="p-2 rounded" />
+          <!-- Selector de categorías (se llena dinámicamente) -->
+          <select id="categorias" multiple required class="p-2 rounded bg-[#2A2A2A] text-[#F5F5F5]"></select>
+          <!-- Input de imagen -->
+          <input
+            type="file"
+            id="image-input"
+            accept="image/*"
+            class="mb-4 text-[#F5F5F5] bg-[#2A2A2A] p-2 rounded"
+          />
+          <button
+            type="submit"
+            class="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700"
+          >
+            Actualizar producto
+          </button>
+          <p id="mensaje" class="text-center mt-2"></p>
+        </form>
+        <div id="image-preview" class="mt-4"></div>
+      </div>
+    </div>
+    <script>
+      // Obtener el id del producto desde la URL
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      const mensaje = document.getElementById("mensaje");
+      const token = localStorage.getItem("token");
+
+      // Solo permitir acceso si es admin
+      async function checkAdmin() {
+        if (!token) {
+          mensaje.textContent = "Debes iniciar sesión como administrador.";
+          mensaje.className = "text-red-500";
+          document.getElementById("edit-product-form").style.display = "none";
+          return false;
+        }
+        const res = await fetch("http://127.0.0.1:8000/api/me", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const user = await res.json();
+        if (!user || user.rol !== "admin") {
+          mensaje.textContent = "Solo los administradores pueden editar productos.";
+          mensaje.className = "text-red-500";
+          document.getElementById("edit-product-form").style.display = "none";
+          return false;
+        }
+        return true;
+      }
+
+      // Cargar categorías y marcar las seleccionadas
+      async function cargarCategorias(idsSeleccionadas = []) {
+        try {
+          const res = await fetch("http://127.0.0.1:8000/api/categorias");
+          const categorias = await res.json();
+          const select = document.getElementById("categorias");
+          select.innerHTML = "";
+          categorias.forEach(cat => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.textContent = cat.nombre;
+            if (idsSeleccionadas.includes(cat.id)) option.selected = true;
+            select.appendChild(option);
+          });
+        } catch (e) {
+          mensaje.textContent = "No se pudieron cargar las categorías";
+          mensaje.className = "text-red-500";
+        }
+      }
+
+      // Cargar datos del producto
+      async function cargarProducto() {
+        if (!id) {
+          mensaje.textContent = "No se proporcionó un ID de producto.";
+          mensaje.className = "text-red-500";
+          document.getElementById("edit-product-form").style.display = "none";
+          return;
+        }
+        const res = await fetch(`http://127.0.0.1:8000/api/productos/${id}`);
+        if (!res.ok) {
+          mensaje.textContent = "Producto no encontrado.";
+          mensaje.className = "text-red-500";
+          document.getElementById("edit-product-form").style.display = "none";
+          return;
+        }
+        const producto = await res.json();
+        document.getElementById("titulo").value = producto.titulo;
+        document.getElementById("descripcion").value = producto.descripcion;
+        document.getElementById("precio").value = producto.precio;
+        document.getElementById("stock").value = producto.stock;
+        // Cargar categorías y marcar las seleccionadas
+        const categoriasIds = Array.isArray(producto.categorias)
+          ? producto.categorias.map(cat => cat.id)
+          : [];
+        cargarCategorias(categoriasIds);
+        // Mostrar imagen actual
+        if (producto.imagen) {
+          document.getElementById("image-preview").innerHTML = `<img src="${producto.imagen}" alt="Imagen actual" class="w-32 h-32 object-cover rounded mx-auto" />`;
+        }
+      }
+
+      // Subir imagen a Firebase (si usas Firebase)
+      async function subirImagen(file) {
+        // Inicializa Firebase solo si no está inicializada
+        if (firebase.apps.length === 0) {
+          firebase.initializeApp(FirebaseConfig);
+        }
+        try {
+          const storageRef = firebase.storage().ref(`imagenes/${Date.now()}_${file.name}`);
+          await storageRef.put(file);
+          const url = await storageRef.getDownloadURL();
+          return url;
+        } catch (error) {
+          console.error("Error al subir la imagen a Firebase:", error);
+          return null;
+        }
+      }
+
+      // Enviar actualización
+      document.getElementById("edit-product-form").addEventListener("submit", async (e) => {
+        e.preventDefault(),
+        mensaje.textContent = "";
+        if (!(await checkAdmin())) return;
+
+        let imageUrl = null;
+        const fileInput = document.getElementById("image-input");
+        const file = fileInput.files[0];
+        if (file) {
+          imageUrl = await subirImagen(file);
+          if (!imageUrl) {
+            mensaje.textContent = "Error al subir la imagen.";
+            mensaje.className = "text-red-500";
+            return;
+          }
+        }
+
+        const categoriasSelect = document.getElementById("categorias");
+        const categoriasIds = Array.from(categoriasSelect.selectedOptions).map(opt => Number(opt.value));
+
+        const producto = {
+          titulo: document.getElementById("titulo").value,
+          descripcion: document.getElementById("descripcion").value,
+          precio: parseFloat(document.getElementById("precio").value),
+          stock: parseInt(document.getElementById("stock").value),
+          categorias: categoriasIds
+        };
+        if (imageUrl) producto.imagen = imageUrl;
+
+        try {
+          const res = await fetch(`http://127.0.0.1:8000/api/productos/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token
+            },
+            body: JSON.stringify(producto)
+          });
+          if (res.ok) {
+            mensaje.textContent = "Producto actualizado exitosamente.";
+            mensaje.className = "text-green-600";
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 2500); 
+          } else {
+            const data = await res.json();
+            mensaje.textContent = data.message || "Error al actualizar el producto.";
+            mensaje.className = "text-red-500";
+          }
+        } catch (error) {
+          mensaje.textContent = "Error al conectar con el servidor.";
+          mensaje.className = "text-red-500";
+        }
+      });
+
+      // Inicialización
+      (async () => {
+        if (await checkAdmin()) {
+          await cargarProducto();
+        }
+      })();
+    </script>
+  </body>
+</html>

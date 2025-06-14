@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carloss Store | Imagenes Prueba</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-[#121212] min-h-screen">
+    <header
+      class="p-4 flex justify-between items-center bg-[#1E1E1E] border-b border-[#2A2A2A] relative"
+    >
+      <a
+        href="./index.html"
+        aria-label="inicio"
+        id="logo"
+        class="w-16 h-16 overflow-hidden rounded-full shadow-[0_0_10px_rgba(245,245,245,0.5)] cursor-pointer"
+      >
+        <img
+          class="w-full h-full object-cover"
+          src="./assets/images/descarga.jpeg"
+          alt="Logo"
+        />
+      </a>
+
+      <button
+        id="menu-toggle"
+        class="cursor-pointer text-white text-3xl focus:outline-none z-50"
+        aria-label="Abrir menú"
+      >
+        ☰
+      </button>
+
+      <nav
+        id="nav-menu"
+        class="hidden fixed inset-0 flex flex-col items-center justify-center bg-[#1E1E1E] space-y-8 z-40 text-xl"
+      >
+        <a
+          href="./index.html"
+          aria-label="inicio"
+          id="logo"
+          class="w-24 h-24 overflow-hidden rounded-full shadow-[0_0_10px_rgba(245,245,245,0.5)] cursor-pointer"
+        >
+          <img
+            class="w-full h-full object-cover"
+            src="./assets/images/descarga.jpeg"
+            alt="Logo"
+          />
+        </a>
+        <a
+          href="./index.html"
+          class="text-slate-300 hover:underline"
+          aria-label="Ir a la sección de inicio"
+          >Inicio</a
+        >
+        <a
+          href="./contacto.html"
+          class="text-slate-300 hover:underline"
+          aria-label="Ir a la sección de contacto"
+          >Contacto</a
+        >
+      </nav>
+    </header>
+    <div class="px-[50px] pb-[120px]">
+      <h1 class="text-center text-5xl font-bold text-[#F5F5F5] mt-8">
+        Crear nuevo producto
+      </h1>
+      <div
+        class="w-full max-w-xl mx-auto shadow-[0_0_10px_rgba(245,245,245,0.5)] rounded-lg mt-8 bg-[#232323] p-8"
+      >
+        <form
+          id="create-product-form"
+          class="flex flex-col gap-4"
+          autocomplete="off"
+        >
+          <input
+            type="text"
+            id="titulo"
+            placeholder="Título"
+            required
+            class="p-2 rounded"
+          />
+          <textarea
+            id="descripcion"
+            placeholder="Descripción"
+            required
+            class="p-2 rounded"
+          ></textarea>
+          <input
+            type="number"
+            id="precio"
+            placeholder="Precio"
+            step="0.01"
+            required
+            class="p-2 rounded"
+          />
+          <input
+            type="number"
+            id="stock"
+            placeholder="Stock"
+            required
+            class="p-2 rounded"
+          />
+          <!-- Selector de categorías (se llena dinámicamente) -->
+          <select
+            id="categorias"
+            multiple
+            required
+            class="p-2 rounded bg-[#2A2A2A] text-[#F5F5F5]"
+          >
+            <!-- Opciones se llenan por JS -->
+          </select>
+          <!-- Input de imagen -->
+          <input
+            type="file"
+            id="image-input"
+            accept="image/*"
+            class="mb-4 text-[#F5F5F5] bg-[#2A2A2A] p-2 rounded"
+            required
+          />
+          <button
+            type="submit"
+            class="bg-[#1E1E1E] text-[#F5F5F5] px-6 py-2 rounded shadow hover:bg-[#2A2A2A]"
+          >
+            Crear producto
+          </button>
+          <p id="mensaje" class="text-center mt-2"></p>
+        </form>
+        <div id="image-preview" class="mt-4"></div>
+      </div>
+    </div>
+    <footer
+      class="text-[#F5F5F5] border-t border-[#2A2A2A] flex justify-center items-center p-4 bg-[#1E1E1E] fixed bottom-0 text-center left-0 w-full"
+    >
+      <p>&copy; 2025 Carlos's Store. Todos los derechos reservados</p>
+    </footer>
+    <script src="menu.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script src="./firebase-config.js"></script>
+    <script src="./firebase.js"></script>
+    <script>
+      // Obtener categorías desde la API y llenar el select
+      async function cargarCategorias() {
+        try {
+          const res = await fetch("http://127.0.0.1:8000/api/categorias");
+          const categorias = await res.json();
+          const select = document.getElementById("categorias");
+          categorias.forEach((cat) => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.textContent = cat.nombre;
+            select.appendChild(option);
+          });
+        } catch (e) {
+          // Si falla, muestra mensaje
+          document.getElementById("mensaje").textContent =
+            "No se pudieron cargar las categorías";
+        }
+      }
+      cargarCategorias();
+
+      // Lógica para subir imagen a Firebase y luego crear producto
+      document
+        .getElementById("create-product-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const mensaje = document.getElementById("mensaje");
+          mensaje.textContent = "";
+
+          // Verifica si el usuario es admin
+          const token = localStorage.getItem("token");
+          if (!token) {
+            mensaje.textContent = "Debes iniciar sesión como administrador.";
+            mensaje.className = "text-red-500";
+            return;
+          }
+          // Verifica rol admin
+          const userRes = await fetch("http://127.0.0.1:8000/api/me", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const user = await userRes.json();
+          if (!user || user.rol !== "admin") {
+            mensaje.textContent = "Solo los administradores pueden crear productos.";
+            mensaje.className = "text-red-500";
+            return;
+          }
+
+          // Subir imagen a Firebase
+          const fileInput = document.getElementById("image-input");
+          const file = fileInput.files[0];
+          if (!file) {
+            mensaje.textContent = "Selecciona una imagen.";
+            mensaje.className = "text-red-500";
+            return;
+          }
+          let imageUrl = "";
+          try {
+            const storageRef = firebase
+              .storage()
+              .ref(`imagenes/${Date.now()}_${file.name}`);
+            await storageRef.put(file);
+            imageUrl = await storageRef.getDownloadURL();
+          } catch (error) {
+            mensaje.textContent = "Error al subir la imagen.";
+            mensaje.className = "text-red-500";
+            return;
+          }
+
+          // Obtener IDs de categorías seleccionadas
+          const categoriasSelect = document.getElementById("categorias");
+          const categoriasIds = Array.from(categoriasSelect.selectedOptions).map(
+            (opt) => Number(opt.value)
+          );
+
+          // Construir el objeto del producto
+          const producto = {
+            titulo: document.getElementById("titulo").value,
+            descripcion: document.getElementById("descripcion").value,
+            precio: parseFloat(document.getElementById("precio").value),
+            imagen: imageUrl,
+            stock: parseInt(document.getElementById("stock").value),
+            categorias: categoriasIds,
+          };
+
+          // Enviar a la API
+          try {
+            const res = await fetch("http://127.0.0.1:8000/api/productos", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + token,
+              },
+              body: JSON.stringify(producto),
+            });
+            if (res.ok) {
+              mensaje.textContent = "Producto creado exitosamente.";
+              mensaje.className = "text-green-600";
+              e.target.reset();
+            } else {
+              const data = await res.json();
+              mensaje.textContent = data.message || "Error al crear el producto.";
+              mensaje.className = "text-red-500";
+            }
+          } catch (error) {
+            mensaje.textContent = "Error al conectar con el servidor.";
+            mensaje.className = "text-red-500";
+          }
+        });
+    </script>
+  </body>
+</html>

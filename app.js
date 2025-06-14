@@ -13,13 +13,13 @@ const handleLogin = () => {
       const mensaje = document.querySelector("#mensaje");
 
       try {
-        const response = await fetch("https://fakestoreapi.com/auth/login", {
+        const response = await fetch("http://127.0.0.1:8000/api/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            username,
+            email: username,
             password,
           }),
         });
@@ -92,14 +92,14 @@ const cargarProductos = async () => {
 
 const cargarCategorias = async () => {
   try {
-    const response = await fetch(
-      "https://fakestoreapi.com/products/categories"
-    );
+    const response = await fetch("http://127.0.0.1:8000/api/categorias");
     if (!response.ok) {
       throw new Error("Error en la respuesta de la API");
     }
     const categorias = await response.json();
-    mostrarCategorias(["all", ...categorias]);
+    // Mapea solo los nombres de las categorías
+    const nombresCategorias = categorias.map(cat => cat.nombre);
+    mostrarCategorias(["all", ...nombresCategorias]);
   } catch (error) {
     console.error("Error al cargar las categorias:", error);
   }
@@ -143,14 +143,17 @@ if (categoria === categoriaSeleccionada) {
 const filtrarProductos = () => {
   let filtrados = productos;
   if (categoriaSeleccionada !== "all") {
-    filtrados = filtrados.filter((p) => p.category === categoriaSeleccionada);
+    filtrados = filtrados.filter((p) =>
+      Array.isArray(p.categorias) &&
+      p.categorias.some(cat => cat.nombre === categoriaSeleccionada)
+    );
   }
   const text = busqueda.value.toLowerCase();
   if (text.trim() !== "") {
     filtrados = filtrados.filter(
       (p) =>
-        p.title.toLowerCase().includes(text) ||
-        p.description.toLowerCase().includes(text)
+        p.titulo.toLowerCase().includes(text) ||
+        p.descripcion.toLowerCase().includes(text)
     );
   }
   mostrarProductos(filtrados);
